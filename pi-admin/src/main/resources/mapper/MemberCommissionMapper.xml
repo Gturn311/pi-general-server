@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.pi.admin.mapper.MemberCommissionMapper">
+
+	<select id="queryCommissionFlowYesterday" resultType="com.pi.admin.service.impl.CommissionInfo">
+		select
+			concat('FXZ02', DATE_FORMAT(DATE_SUB(CURRENT_DATE(), INTERVAL 1 day), '%Y%m%d'), lpad(@i:=@i+1, 5, 0)) trxNum,
+			t.*
+		from
+		(
+			select
+				DATE_FORMAT(DATE_SUB(CURRENT_DATE(), INTERVAL ${num1} day), '%Y%m%d') transDate,
+				'167001' storeCode,
+				'长沙步步高智慧商业有限责任公司' storeName,
+				flow.ebs_code itemStoreCode,
+				flow.shop_name itemStoreName,
+				'GOODS' busiType,
+				round(ifnull(sum(flow.amount_change), 0) / 100, 2) amount
+			from bbg_member_commission_increase_flow flow
+			where <![CDATA[flow.modify_time >= DATE_SUB(CURRENT_DATE(),INTERVAL ${num1} day) and flow.modify_time < DATE_ADD(CURRENT_DATE(),INTERVAL ${num2} day)]]>
+				and flow.order_type >=0 and flow.biz_type in (99,98) and flow.state = 9 and flow.delete_flag = 0
+			group by ebs_code
+
+			union all
+
+			select
+				DATE_FORMAT(DATE_SUB(CURRENT_DATE(), INTERVAL ${num1} day), '%Y%m%d') transDate,
+				'167001' storeCode,
+				'长沙步步高智慧商业有限责任公司' storeName,
+				'167001' itemStoreCode,
+				'长沙步步高智慧商业有限责任公司' itemStoreName,
+				'MEMBER' busiType,
+				round(ifnull(sum(flow.amount_change), 0) / 100, 2) amount
+			from bbg_member_commission_increase_flow flow
+			where <![CDATA[flow.modify_time >= DATE_SUB(CURRENT_DATE(),INTERVAL ${num1} day) and flow.modify_time < DATE_ADD(CURRENT_DATE(),INTERVAL ${num2} day)]]>
+				and flow.order_type = -1 and flow.biz_type = -1 and state = 9 and delete_flag = 0
+		) t , (select @i:=0) as it
+			where t.amount > 0
+	</select>
+	<select id="queryHomeCommissionFlowYesterday" resultType="com.pi.admin.service.impl.CommissionInfo">
+				select
+			concat('XBDJ', DATE_FORMAT(DATE_SUB(CURRENT_DATE(), INTERVAL 1 day), '%Y%m%d'), lpad(@i:=@i+1, 5, 0)) trxNum,
+			t.*
+		from
+		(
+			select
+				DATE_FORMAT(DATE_SUB(CURRENT_DATE(), INTERVAL ${num1} day), '%Y%m%d') transDate,
+				'190019' storeCode,
+				'小步到家' storeName,
+				'190019' itemStoreCode,
+				'小步到家' itemStoreName,
+				'HOME' busiType,
+				round(ifnull(sum(flow.amount_change), 0) / 100, 2) amount
+			from bbg_member_commission_increase_flow flow
+			where <![CDATA[flow.modify_time >= DATE_SUB(CURRENT_DATE(),INTERVAL ${num1} day) and flow.modify_time < DATE_ADD(CURRENT_DATE(),INTERVAL ${num2} day)]]>
+				and flow.order_type >=0 and flow.biz_type in (91,92) and state = 9 and delete_flag = 0
+		) t , (select @i:=0) as it
+			where t.amount > 0
+	</select>
+	<select id="queryCommissionWithdrawalFlowYesterday" resultType="com.pi.admin.service.impl.CommissionPayInfo">
+		select
+			concat('FXZ03', DATE_FORMAT(DATE_SUB(CURRENT_DATE(), INTERVAL 1 day), '%Y%m%d'), lpad(@i:=@i+1, 5, 0)) trxNum,
+			t.*
+		from (
+			select
+				'SHARE'	busiType,
+				DATE_FORMAT(DATE_SUB(CURRENT_DATE(), INTERVAL ${num1} day), '%Y%m%d') transDate,
+				'167001' storeCode,
+				'长沙步步高智慧商业有限责任公司' storeName,
+				'中国建设银行' bankName,
+				'43050178463600000241' bankAccount,
+				round(ifnull(sum(flow.w_amt), 0) / 100, 2) totalAmt,
+				round(ifnull(sum(flow.w_pay_amt), 0) / 100, 2) payAmt,
+				round(ifnull(sum(flow.w_tax_amt), 0) / 100, 2) taxAmt,
+				round(ifnull(sum(flow.w_vat_amt), 0) / 100, 2) vatAmt
+			from bbg_member_withdrawal_flow flow
+			where <![CDATA[flow.w_last_modify >= DATE_SUB(CURRENT_DATE(),INTERVAL ${num1} day) and flow.w_last_modify < DATE_ADD(CURRENT_DATE(),INTERVAL ${num2} day)]]>
+				and flow.w_status = 0 and flow.w_type = 0
+			group by flow.w_bank_name, flow.w_bank_account
+		) t, (select @i:=0) as it
+			where t.totalAmt > 0
+	</select>
+	<select id="queryHomeCommissionWithdrawalFlowYesterday" resultType="com.pi.admin.service.impl.CommissionPayInfo">
+		select
+			concat('XBDJ', DATE_FORMAT(DATE_SUB(CURRENT_DATE(),INTERVAL 1 day), '%Y%m%d'), lpad(@i:=@i+1, 5, 0)) trxNum,
+			t.*
+		from (
+			select
+				'HOME'	busiType,
+				DATE_FORMAT(DATE_SUB(CURRENT_DATE(), INTERVAL ${num1} day), '%Y%m%d') transDate,
+				'190019' storeCode,
+				'小步到家' storeName,
+				flow.w_bank_name bankName,
+				flow.w_bank_account bankAccount,
+				round(ifnull(sum(flow.w_amt), 0) / 100, 2) totalAmt,
+				round(ifnull(sum(flow.w_pay_amt), 0) / 100, 2) payAmt,
+				round(ifnull(sum(flow.w_tax_amt), 0) / 100, 2) taxAmt,
+				round(ifnull(sum(flow.w_vat_amt), 0) / 100, 2) vatAmt
+			from bbg_member_withdrawal_flow flow
+			where <![CDATA[flow.w_last_modify >= DATE_SUB(CURRENT_DATE(),INTERVAL ${num1} day) and flow.w_last_modify < DATE_ADD(CURRENT_DATE(),INTERVAL ${num2} day)]]>
+				and flow.w_status = 0 and flow.w_type = 1
+			group by flow.w_bank_name, flow.w_bank_account
+		) t, (select @i:=0) as it
+			where t.totalAmt > 0
+	</select>
+	<select id="getVipMemberIds" resultType="java.lang.Long">
+		SELECT DISTINCT member_id  FROM `bbg_member_vip_details` WHERE pay_status = 1 AND vip_start_time <![CDATA[ <= ]]> NOW() AND vip_end_time <![CDATA[ >= ]]> NOW();
+	</select>
+
+</mapper>
