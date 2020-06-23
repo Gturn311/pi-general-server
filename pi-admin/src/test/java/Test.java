@@ -1,6 +1,6 @@
 import com.pi.admin.AdminApiApplication;
-import com.pi.admin.service.DateUtils;
 import com.pi.admin.service.impl.MemberSSOAService;
+import com.yunhou.gateway.mobile.utils.DateUtils;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,16 +25,12 @@ public class Test {
     private MemberSSOAService memberSSOAService;
     @org.junit.Test
     public void proccess() throws InterruptedException {
-        Date parse = parse("2020-4-12", "yyyy-MM-dd");
+        Date parse = parse("2020-4-13", "yyyy-MM-dd");
         Long interval = null;
-        try {
-            interval = getInterval(parse, new Date());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        Date date = DateUtils.nextNDate(parse, -1);
         System.out.println(interval);
-        memberSSOAService.pushCommissionFlow(interval.intValue()+1+"",interval.toString());
-        memberSSOAService.pushCommissionWithdrawalFlow(interval.intValue()+1+"",interval.toString());
+        memberSSOAService.pushCommissionFlow(date,parse);
+        memberSSOAService.pushCommissionWithdrawalFlow(date,parse);
         memberSSOAService.pushCommissionUsedTicketInfo(parse);
     }
 

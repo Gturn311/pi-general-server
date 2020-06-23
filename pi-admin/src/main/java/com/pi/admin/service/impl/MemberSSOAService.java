@@ -39,19 +39,21 @@ public class MemberSSOAService {
     private String dtURL ="http://datacenter.bubugao.api/bbg_share/getUsedTicketInfo";
 
 
-    public void pushCommissionFlow(String number1,String number2) throws InterruptedException {
-        System.out.println("num1="+number1+"   num2="+number2);
-        //logger.info("num1={},num2={}",number1,number2);
-        final List<CommissionInfo> commissionFlowList = memberCommissionMapper.queryCommissionFlowYesterday(number1,number2);
-        final List<CommissionInfo> commissionInfos = memberCommissionMapper.queryHomeCommissionFlowYesterday(number1,number2);
-        ssoaSyncComissionInfo(commissionFlowList, ComissionBusiType.SHARE.getCodeName());
+    public void pushCommissionFlow(Date startTime,Date endTime) throws InterruptedException {
+        System.out.println("num1="+startTime+"   num2="+endTime);
+        logger.info("num1={},num2={}",startTime,endTime);
+        //List<Long> vipMemberIds = memberCommissionMapper.getVipMemberIds();
+        //System.out.println("vipMemberIds :"+vipMemberIds.size());
+        final List<CommissionInfo> commissionInfos = memberCommissionMapper.queryHomeCommissionFlowYesterday(startTime,endTime);
         ssoaSyncComissionInfo(commissionInfos, ComissionBusiType.HOME.getCodeName());
+        final List<CommissionInfo> commissionFlowList = memberCommissionMapper.queryCommissionFlowYesterday(startTime,endTime);
+        ssoaSyncComissionInfo(commissionFlowList, ComissionBusiType.SHARE.getCodeName());
     }
 
-    public void pushCommissionWithdrawalFlow(String number1,String number2) throws InterruptedException {
+    public void pushCommissionWithdrawalFlow(Date startTime,Date endTime) throws InterruptedException {
         //logger.info("num1={},num2={}",num1,num2);
-        final List<CommissionPayInfo> commissionWithdrawalFlowList = memberCommissionMapper.queryCommissionWithdrawalFlowYesterday(number1,number2);
-        final List<CommissionPayInfo> commissionPayInfos = memberCommissionMapper.queryHomeCommissionWithdrawalFlowYesterday(number1,number2);
+        final List<CommissionPayInfo> commissionWithdrawalFlowList = memberCommissionMapper.queryCommissionWithdrawalFlowYesterday(startTime,endTime);
+        final List<CommissionPayInfo> commissionPayInfos = memberCommissionMapper.queryHomeCommissionWithdrawalFlowYesterday(startTime,endTime);
         ssoaSyncCommissionPayInfo(commissionWithdrawalFlowList, ComissionBusiType.SHARE.getCodeName());
         ssoaSyncCommissionPayInfo(commissionPayInfos, ComissionBusiType.HOME.getCodeName());
     }
@@ -72,22 +74,23 @@ public class MemberSSOAService {
             try {
                 if (json == null) {
                     Map<String, Object> resultMap = httpsClient().post(dtURL, params);
-                    json = JSON.toJSONString(resultMap);
+                    json =  UtilJson.writeValueAsString(resultMap);
                     if (successCode.equals(JSON.parseObject(json).get("code"))) {
                         Object data = JSON.parseObject(json).get("data");
                         if (data!=null){
+                            logger.info("分享赚SSOA对账 付费会员券归集，json={}", json);
                             ssoaCommissionService.syncUsedTicketInfo(JSON.toJSONString(data));
                         }
                         logger.info("分享赚SSOA对账 付费会员券归集，json={}", json);
                         break;
                     } else {
-                        //logger.warn("请求DT付费会员券信息失败，json={}", json);
+                        logger.warn("请求DT付费会员券信息失败，json={}", json);
                         json = null;
                         continue;
                     }
                 }
             } catch (Exception e) {
-                //logger.warn("分享赚SSOA对账 付费会员券归集异常，重试次数={}，json={}", i, json, e);
+                logger.warn("分享赚SSOA对账 付费会员券归集异常，重试次数={}，json={}", i, json, e);
                 //Thread.sleep(2000L);
             }
         }
@@ -97,10 +100,10 @@ public class MemberSSOAService {
         for (int i = 0; i < 10; i++) {
             try {
                 ssoaCommissionService.syncCommissionInfo(commissionFlowList);
-                //logger.info("{}SSOA对账，commissionFlowList={}", busiType, UtilJson.writeValueAsString(commissionFlowList));
+                logger.info("{}SSOA对账，commissionFlowList={}", busiType, UtilJson.writeValueAsString(commissionFlowList));
                 break;
             } catch (Exception e) {
-                //logger.warn("{}SSOA对账异常，重试次数={}，commissionFlowList={}", busiType, i, UtilJson.writeValueAsString(commissionFlowList), e);
+                logger.warn("{}SSOA对账异常，重试次数={}，commissionFlowList={}", busiType, i, UtilJson.writeValueAsString(commissionFlowList), e);
                 //Thread.sleep(2000L);
             }
         }

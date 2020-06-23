@@ -5,6 +5,7 @@ import com.pi.admin.service.impl.CommissionInfo;
 import com.pi.admin.service.impl.CommissionPayInfo;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -13,13 +14,13 @@ import java.util.List;
  */
 public interface MemberCommissionMapper {
 
-    List<CommissionInfo> queryCommissionFlowYesterday(@Param("num1") String num1, @Param("num2") String num2);
+    List<CommissionInfo> queryCommissionFlowYesterday(@Param("startTime") Date startTime, @Param("endTime") Date endTime);
 
-    List<CommissionPayInfo> queryCommissionWithdrawalFlowYesterday(@Param("num1") String num1, @Param("num2") String num2);
+    List<CommissionPayInfo> queryCommissionWithdrawalFlowYesterday(@Param("startTime") Date startTime, @Param("endTime") Date endTime);
 
-    List<CommissionInfo> queryHomeCommissionFlowYesterday(@Param("num1") String num1,@Param("num2") String num2);
+    List<CommissionInfo> queryHomeCommissionFlowYesterday(@Param("startTime") Date startTime,@Param("endTime") Date endTime);
 
-    List<CommissionPayInfo> queryHomeCommissionWithdrawalFlowYesterday(@Param("num1") String num1,@Param("num2") String num2);
+    List<CommissionPayInfo> queryHomeCommissionWithdrawalFlowYesterday(@Param("startTime") Date startTime,@Param("endTime") Date endTime);
 
     List<Long> getVipMemberIds();
 }

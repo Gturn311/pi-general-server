@@ -2,6 +2,8 @@ package com.pi.admin.service.impl;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -116,7 +118,7 @@ public class SsoaCommissionServiceImpl implements SsoaCommissionService {
     }
 
     private void addUsedTicketInfo(Integer num, Map<String, Object> infoMap, List<UsedTicketInfo> usedTicketInfos , String typeCode,Integer arrSize) {
-        String transDate = DateUtils.dateToString(new Date(), "yyyyMMdd");
+        String transDate = DateUtils.dateToString(parse("2020-4-12", "yyyy-MM-dd"), "yyyyMMdd");
         UsedTicketInfo usedTicketInfo = new UsedTicketInfo();
         usedTicketInfo.setTrxNum(createtrxNum(num,transDate,arrSize));
         usedTicketInfo.setTransDate(transDate);
@@ -142,6 +144,19 @@ public class SsoaCommissionServiceImpl implements SsoaCommissionService {
             return;
         }
         usedTicketInfos.add(usedTicketInfo);
+    }
+
+    public Date parse(String date, String patter) {
+        SimpleDateFormat sdf = new SimpleDateFormat(patter);
+        Date dates = null;
+
+        try {
+            dates = sdf.parse(date);
+            return dates;
+        } catch (ParseException var5) {
+            System.out.println(var5);
+            return dates;
+        }
     }
 
 

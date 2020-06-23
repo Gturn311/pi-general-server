@@ -20,8 +20,13 @@ public class SsoaRequestHandler {
 
     private final static Logger logger = LoggerFactory.getLogger(SsoaRequestHandler.class);
 
+    @Value("${bbg.ssoa.url:http://192.168.245.9:7001/OAWSSMS}")
+    private String ssoaURL;
+
+/*
     @Value("${bbg.ssoa.url:http://192.168.7.73:7001/OAWSSMS}")
     private String ssoaURL;
+*/
 
     public void sendData(SsoaReqData reqData, String transDate, int recordSize, String method, String methodMsg){
         SsoaDataParams paramObj = getUidAndToken(transDate, recordSize);
